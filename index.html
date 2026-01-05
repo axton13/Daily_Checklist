@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 48rem;
+            max-width: 56rem;
             margin: 0 auto;
             background: white;
             border-radius: 1rem;
@@ -53,40 +53,24 @@
             transition: width 0.3s;
         }
 
-        .input-container {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
+        .section {
+            margin-bottom: 2rem;
         }
 
-        #taskInput {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 2px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            outline: none;
-        }
-
-        #taskInput:focus {
-            border-color: #6366f1;
-        }
-
-        .add-btn {
-            background: #6366f1;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            cursor: pointer;
+        .section-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #4f46e5;
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .add-btn:hover {
-            background: #4f46e5;
+        .section-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 1rem;
         }
 
         .task-list {
@@ -97,9 +81,9 @@
 
         .task-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.75rem;
-            padding: 1rem;
+            padding: 0.75rem;
             background: #f9fafb;
             border-radius: 0.5rem;
             transition: background 0.2s;
@@ -112,6 +96,7 @@
         .checkbox {
             width: 1.5rem;
             height: 1.5rem;
+            min-width: 1.5rem;
             border: 2px solid #d1d5db;
             border-radius: 0.25rem;
             cursor: pointer;
@@ -120,6 +105,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
+            margin-top: 0.125rem;
         }
 
         .checkbox.checked {
@@ -134,11 +120,75 @@
         .task-text {
             flex: 1;
             color: #1f2937;
+            line-height: 1.5;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        .task-text:hover {
+            background: #e5e7eb;
         }
 
         .task-text.completed {
             color: #9ca3af;
             text-decoration: line-through;
+        }
+
+        .task-text.editing {
+            background: white;
+            border: 2px solid #6366f1;
+            padding: 0.25rem 0.5rem;
+            outline: none;
+            cursor: text;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reset-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #dc2626;
+        }
+
+        .save-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #059669;
+        }
+
+        .add-task-btn {
+            background: #6366f1;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .add-task-btn:hover {
+            background: #4f46e5;
         }
 
         .delete-btn {
@@ -147,25 +197,50 @@
             color: #ef4444;
             cursor: pointer;
             padding: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .task-item:hover .delete-btn {
+            opacity: 1;
         }
 
         .delete-btn:hover {
             color: #dc2626;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 3rem 0;
-            color: #9ca3af;
-        }
-
         svg {
             width: 1.25rem;
             height: 1.25rem;
         }
+
+        .section-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        .save-notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: #10b981;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .save-notification.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
+    <div class="save-notification" id="saveNotification">Changes saved!</div>
+
     <div class="container">
         <div>
             <h1>Daily Checklist</h1>
@@ -175,93 +250,268 @@
             </div>
         </div>
 
-        <div class="input-container">
-            <input type="text" id="taskInput" placeholder="Add a new task...">
-            <button class="add-btn" onclick="addTask()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
+        <div class="section">
+            <div class="section-header">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
-                Add
-            </button>
+                MORNING
+            </div>
+            <div class="section-subtitle">30–45 min</div>
+            <div class="task-list" id="morningTasks"></div>
+            <button class="add-task-btn" onclick="addTask('morning')">+ Add Task</button>
         </div>
 
-        <div class="task-list" id="taskList"></div>
+        <div class="section">
+            <div class="section-header">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                DAYTIME
+            </div>
+            <div class="task-list" id="daytimeTasks"></div>
+            <button class="add-task-btn" onclick="addTask('daytime')">+ Add Task</button>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+                EVENING
+            </div>
+            <div class="section-subtitle">45–60 min</div>
+            <div class="task-list" id="eveningTasks"></div>
+            <button class="add-task-btn" onclick="addTask('evening')">+ Add Task</button>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                NIGHT
+            </div>
+            <div class="section-subtitle">10–15 min</div>
+            <div class="task-list" id="nightTasks"></div>
+            <button class="add-task-btn" onclick="addTask('night')">+ Add Task</button>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                WEEKLY CHECK-INS
+            </div>
+            <div class="task-list" id="weeklyTasks"></div>
+            <button class="add-task-btn" onclick="addTask('weekly')">+ Add Task</button>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn save-btn" onclick="saveTasks()">Save Changes</button>
+            <button class="btn reset-btn" onclick="resetAll()">Reset All Tasks</button>
+        </div>
     </div>
 
     <script>
-        let tasks = [
-            { id: 1, text: 'Morning exercise', completed: false },
-            { id: 2, text: 'Drink 8 glasses of water', completed: false },
-            { id: 3, text: 'Read for 30 minutes', completed: false }
-        ];
+        const initialTasks = {
+            morning: [
+                { id: 'm1', text: 'Spiritual grounding (10 min): Prayer / meditation / scripture / silence', completed: false },
+                { id: 'm2', text: 'Physical movement (20–30 min): Walk, lift, stretch, or bodyweight', completed: false },
+                { id: 'm3', text: 'Daily intention: "Today I lead by ___."', completed: false }
+            ],
+            daytime: [
+                { id: 'd1', text: 'Financial awareness (5–10 min): Check balances and spending', completed: false },
+                { id: 'd2', text: 'Grow Business (60–90 min): business development or business growth', completed: false }
+            ],
+            evening: [
+                { id: 'e1', text: 'Protein-forward dinner; no liquid calories', completed: false },
+                { id: 'e2', text: '10 min uninterrupted time with each kid', completed: false },
+                { id: 'e3', text: 'One affirming statement per child', completed: false },
+                { id: 'e4', text: 'Marriage-first anchor: affection, appreciation, or check-in', completed: false },
+                { id: 'e5', text: 'Shared family routine', completed: false }
+            ],
+            night: [
+                { id: 'n1', text: 'End-of-day reflection and one win written down', completed: false },
+                { id: 'n2', text: 'Sleep discipline: phone down, lights out', completed: false }
+            ],
+            weekly: [
+                { id: 'w1', text: 'Weekly couple check-in', completed: false },
+                { id: 'w2', text: 'Weekly budget and savings review', completed: false },
+                { id: 'w3', text: 'Weekly business milestone', completed: false },
+                { id: 'w4', text: 'Weekly family activity', completed: false }
+            ]
+        };
 
-        function render() {
-            const taskList = document.getElementById('taskList');
-            const completedCount = tasks.filter(t => t.completed).length;
-            const totalCount = tasks.length;
-            
-            // Update progress
-            document.getElementById('progressText').textContent = 
-                `${completedCount} of ${totalCount} tasks completed`;
-            document.getElementById('progressFill').style.width = 
-                totalCount > 0 ? `${(completedCount / totalCount) * 100}%` : '0%';
+        let tasks = JSON.parse(JSON.stringify(initialTasks));
+        let editingTask = null;
 
-            // Render tasks
-            if (tasks.length === 0) {
-                taskList.innerHTML = '<div class="empty-state">No tasks yet. Add one to get started!</div>';
-                return;
+        function loadTasks() {
+            const saved = localStorage.getItem('dailyChecklist');
+            if (saved) {
+                tasks = JSON.parse(saved);
             }
-
-            taskList.innerHTML = tasks.map(task => `
-                <div class="task-item">
-                    <div class="checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})">
-                        ${task.completed ? `
-                            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        ` : ''}
-                    </div>
-                    <span class="task-text ${task.completed ? 'completed' : ''}">${task.text}</span>
-                    <button class="delete-btn" onclick="deleteTask(${task.id})">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                    </button>
-                </div>
-            `).join('');
         }
 
-        function addTask() {
-            const input = document.getElementById('taskInput');
-            const text = input.value.trim();
+        function saveTasks() {
+            localStorage.setItem('dailyChecklist', JSON.stringify(tasks));
+            showSaveNotification();
+        }
+
+        function showSaveNotification() {
+            const notification = document.getElementById('saveNotification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        function render() {
+            const sections = ['morning', 'daytime', 'evening', 'night', 'weekly'];
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            sections.forEach(section => {
+                const taskList = document.getElementById(`${section}Tasks`);
+                const sectionTasks = tasks[section];
+                
+                totalTasks += sectionTasks.length;
+                completedTasks += sectionTasks.filter(t => t.completed).length;
+
+                taskList.innerHTML = sectionTasks.map(task => `
+                    <div class="task-item">
+                        <div class="checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask('${section}', '${task.id}')">
+                            ${task.completed ? `
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            ` : ''}
+                        </div>
+                        <div class="task-text ${task.completed ? 'completed' : ''}" 
+                             onclick="startEditing('${section}', '${task.id}')"
+                             id="task-${task.id}">
+                            ${task.text}
+                        </div>
+                        <button class="delete-btn" onclick="deleteTask('${section}', '${task.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `).join('');
+            });
+
+            document.getElementById('progressText').textContent = 
+                `${completedTasks} of ${totalTasks} tasks completed`;
+            document.getElementById('progressFill').style.width = 
+                totalTasks > 0 ? `${(completedTasks / totalTasks) * 100}%` : '0%';
+        }
+
+        function toggleTask(section, id) {
+            tasks[section] = tasks[section].map(task => 
+                task.id === id ? { ...task, completed: !task.completed } : task
+            );
+            saveTasks();
+            render();
+        }
+
+        function startEditing(section, id) {
+            const element = document.getElementById(`task-${id}`);
+            const task = tasks[section].find(t => t.id === id);
             
-            if (text) {
-                tasks.push({ id: Date.now(), text: text, completed: false });
-                input.value = '';
+            element.contentEditable = true;
+            element.classList.add('editing');
+            element.focus();
+            
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            editingTask = { section, id, originalText: task.text };
+            
+            element.addEventListener('blur', finishEditing);
+            element.addEventListener('keydown', handleEditKeydown);
+        }
+
+        function handleEditKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.target.blur();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                const element = document.getElementById(`task-${editingTask.id}`);
+                element.textContent = editingTask.originalText;
+                element.blur();
+            }
+        }
+
+        function finishEditing(e) {
+            if (!editingTask) return;
+            
+            const element = e.target;
+            const newText = element.textContent.trim();
+            
+            if (newText && newText !== editingTask.originalText) {
+                tasks[editingTask.section] = tasks[editingTask.section].map(task =>
+                    task.id === editingTask.id ? { ...task, text: newText } : task
+                );
+                saveTasks();
+            }
+            
+            element.contentEditable = false;
+            element.classList.remove('editing');
+            element.removeEventListener('blur', finishEditing);
+            element.removeEventListener('keydown', handleEditKeydown);
+            
+            editingTask = null;
+            render();
+        }
+
+        function deleteTask(section, id) {
+            if (confirm('Are you sure you want to delete this task?')) {
+                tasks[section] = tasks[section].filter(task => task.id !== id);
+                saveTasks();
                 render();
             }
         }
 
-        function toggleTask(id) {
-            tasks = tasks.map(task => 
-                task.id === id ? { ...task, completed: !task.completed } : task
-            );
+        function addTask(section) {
+            const newId = `${section.charAt(0)}${Date.now()}`;
+            const newTask = { id: newId, text: 'New task', completed: false };
+            tasks[section].push(newTask);
+            saveTasks();
             render();
+            
+            setTimeout(() => {
+                startEditing(section, newId);
+            }, 100);
         }
 
-        function deleteTask(id) {
-            tasks = tasks.filter(task => task.id !== id);
-            render();
+        function resetAll() {
+            if (confirm('Are you sure you want to reset all tasks? This will uncheck everything and restore defaults.')) {
+                tasks = JSON.parse(JSON.stringify(initialTasks));
+                saveTasks();
+                render();
+            }
         }
 
-        // Allow Enter key to add task
-        document.getElementById('taskInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addTask();
-        });
-
-        // Initial render
+        loadTasks();
         render();
     </script>
 </body>
